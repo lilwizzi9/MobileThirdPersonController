@@ -1,0 +1,26 @@
+[gd_scene load_steps=4 format=3 uid="uid://d3puqe4vv7s18"]
+
+[ext_resource type="Script" path="res://ThirdPersonController/Scripts/Movement.cs" id="1_6g0m5"]
+[ext_resource type="PackedScene" uid="uid://b3lwyxyma3oiv" path="res://ThirdPersonController/DemoFolder/DemoModel.blend" id="2_x22ly"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_bukc1"]
+
+[node name="CharacterThirdPerson" type="CharacterBody3D"]
+script = ExtResource("1_6g0m5")
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("CapsuleShape3D_bukc1")
+
+[node name="CharacterViewModelHandler" type="Node3D" parent="Collision"]
+unique_name_in_owner = true
+
+[node name="DemoModel" parent="Collision/CharacterViewModelHandler" instance=ExtResource("2_x22ly")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)
+
+[node name="SpringArm3D" type="SpringArm3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 1.7, 0)
+spring_length = 2.0
+
+[node name="Camera3D" type="Camera3D" parent="SpringArm3D"]
+unique_name_in_owner = true
