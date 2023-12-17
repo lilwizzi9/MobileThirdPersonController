@@ -39,7 +39,7 @@ public partial class Movement : CharacterBody3D
 		if(@event is InputEventScreenDrag Input){
 			if(TouchIndex == Input.Index ){
 				var inputValue = (Input.Position - fingerPosition)*TouchSensitivity;
-				var tmpYrot = DetachCam?   this.RotationDegrees.Y+inputValue.X*-30:SpringArm.RotationDegrees.Y+inputValue.X*-30;
+				var tmpYrot = !DetachCam?   this.RotationDegrees.Y+inputValue.X*-30:SpringArm.RotationDegrees.Y+inputValue.X*-30;
 				// camera.RotateX(inputValue.Y*-.5f);
 				var tmpXrot = SpringArm.RotationDegrees.X+inputValue.Y*-30;
 				camRotTmp = new Vector3(Math.Clamp(tmpXrot,-80,80),tmpYrot,0);
@@ -53,7 +53,7 @@ public partial class Movement : CharacterBody3D
 	private void UpdateViewMeshRot(){
 		double delta = this.GetProcessDeltaTime();
 		
-		if(!DetachCam ){	
+		if(DetachCam){	
 			if(!IsOnFloor()){return;}		
 			// CharacterHandler.GlobalRotation = new Vector3(0,
 			// (float)Mathf.MoveToward(CharacterHandler.GlobalRotation.Y,SpringArm.GlobalRotation.Y,delta*30) 
@@ -61,7 +61,7 @@ public partial class Movement : CharacterBody3D
 			//In Motion
 			if(Velocity!=Vector3.Zero){
 				CharacterHandler.GlobalRotation = new Vector3(0,
-				(float)Mathf.LerpAngle(CharacterHandler.GlobalRotation.Y,SpringArm.GlobalRotation.Y,delta*30) 
+				(float)Mathf.LerpAngle(CharacterHandler.GlobalRotation.Y,SpringArm.GlobalRotation.Y,delta*25) 
 				,0);
 			}
 			
@@ -72,19 +72,30 @@ public partial class Movement : CharacterBody3D
 	public override void _PhysicsProcess(double delta)
 	{
 		Vector3 velocity = Velocity;
-		SpringArm.RotationDegrees = new Vector3(
-			Mathf.MoveToward(camRotTmp.X,SpringArm.RotationDegrees.X,(float)delta*2),
-			DetachCam? SpringArm.RotationDegrees.Y:Mathf.MoveToward(camRotTmp.Y,SpringArm.RotationDegrees.Y,(float)delta*2),
-			SpringArm.RotationDegrees.Z
-		);
+		// SpringArm.RotationDegrees = new Vector3(
+		// 	Mathf.MoveToward(camRotTmp.X,SpringArm.RotationDegrees.X,(float)delta*2),
+		// 	DetachCam? SpringArm.RotationDegrees.Y:Mathf.MoveToward(camRotTmp.Y,SpringArm.RotationDegrees.Y,(float)delta*2),
+		// 	SpringArm.RotationDegrees.Z
+		// );
 		UpdateViewMeshRot();
-		// if(!DetachCam){
-		// 	this.RotationDegrees = new Vector3(
-		// 		this.RotationDegrees.X,
-		// 		Mathf.MoveToward(camRotTmp.Y,SpringArm.RotationDegrees.Y,(float)delta*2),
-		// 		this.RotationDegrees.Z
-		// 	);
-		// }
+		if(!DetachCam){
+			SpringArm.RotationDegrees = new Vector3(
+				Mathf.MoveToward(camRotTmp.X,SpringArm.RotationDegrees.X,(float)delta*2),
+				SpringArm.RotationDegrees.Y,
+				SpringArm.RotationDegrees.Z
+			);
+			this.RotationDegrees = new Vector3(
+				this.RotationDegrees.X,
+				Mathf.MoveToward(camRotTmp.Y,SpringArm.RotationDegrees.Y,(float)delta*2),
+				this.RotationDegrees.Z
+			);
+		}else{
+			SpringArm.RotationDegrees = new Vector3(
+				Mathf.MoveToward(camRotTmp.X,SpringArm.RotationDegrees.X,(float)delta*2),
+				Mathf.MoveToward(camRotTmp.Y,SpringArm.RotationDegrees.Y,(float)delta*2),
+				SpringArm.RotationDegrees.Z
+			);
+		}
 		
 		
 
@@ -115,7 +126,10 @@ public partial class Movement : CharacterBody3D
 			
 			Vector3 direction = (Transform.Basis * new Vector3(inputDir.X, 0, inputDir.Y)).Normalized();
 			// direction= direction.Rotated(Vector3.Up,(float)(SpringArm.RotationDegrees.Y*Math.PI)/1800);
-			direction= direction.Rotated(Vector3.Up,SpringArm.GlobalRotation.Y);
+			if(DetachCam){
+				direction= direction.Rotated(Vector3.Up,SpringArm.GlobalRotation.Y);
+			}
+			
 			if (direction != Vector3.Zero)
 			{
 				

@@ -31,3 +31,4 @@ size = Vector3(14.8863, 0.1, 16.3225)
 
 [node name="CharacterThirdPerson" parent="." instance=ExtResource("1_w5oup")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 1, 0)
+DetachCam = true
