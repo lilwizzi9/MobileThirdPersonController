@@ -7,6 +7,8 @@ public partial class Movement : CharacterBody3D
 	public const float JumpVelocity = 4.5f;
 	[Export]
 	public bool DetachCam = false;
+	[Export]
+	public bool CanFaceCam   = false;
 
 	// Get the gravity from the project settings to be synced with RigidBody nodes.
 	public float gravity = ProjectSettings.GetSetting("physics/3d/default_gravity").AsSingle();
@@ -19,6 +21,7 @@ public partial class Movement : CharacterBody3D
 		
 		SpringArm = GetNode<SpringArm3D>("./SpringArm3D");
 		CharacterHandler = GetNode<Node3D>("./Collision/CharacterViewModelHandler");
+		SpringArm.AddExcludedObject(this.GetRid());
 		// AnimPlayer = GetNode<AnimationPlayer>("./AnimationPlayer");
 	}
 	// Called when input is Given
@@ -48,16 +51,24 @@ public partial class Movement : CharacterBody3D
 
 	
 	private void UpdateViewMeshRot(){
-		this.GetProcessDeltaTime();
+		double delta = this.GetProcessDeltaTime();
 		
-		if(!DetachCam){
-			CharacterHandler.LookAt(CharacterHandler.GlobalPosition+lastDirection);
-			// CharacterHandler.GlobalRotation = new Vector3(CharacterHandler.GlobalRotation.X,
-			// SpringArm.GlobalRotation.Y,
-			// CharacterHandler.GlobalRotation.X) ;
+		if(!DetachCam ){	
+			if(!IsOnFloor()){return;}		
+			// CharacterHandler.GlobalRotation = new Vector3(0,
+			// (float)Mathf.MoveToward(CharacterHandler.GlobalRotation.Y,SpringArm.GlobalRotation.Y,delta*30) 
+			// ,0);
+			//In Motion
+			if(Velocity!=Vector3.Zero){
+				CharacterHandler.GlobalRotation = new Vector3(0,
+				(float)Mathf.LerpAngle(CharacterHandler.GlobalRotation.Y,SpringArm.GlobalRotation.Y,delta*30) 
+				,0);
+			}
+			
 		}
 	}
 	private Vector3 lastDirection =Vector3.Zero;
+	private bool inMotion= false;
 	public override void _PhysicsProcess(double delta)
 	{
 		Vector3 velocity = Velocity;
@@ -66,6 +77,7 @@ public partial class Movement : CharacterBody3D
 			DetachCam? SpringArm.RotationDegrees.Y:Mathf.MoveToward(camRotTmp.Y,SpringArm.RotationDegrees.Y,(float)delta*2),
 			SpringArm.RotationDegrees.Z
 		);
+		UpdateViewMeshRot();
 		// if(!DetachCam){
 		// 	this.RotationDegrees = new Vector3(
 		// 		this.RotationDegrees.X,
@@ -106,7 +118,7 @@ public partial class Movement : CharacterBody3D
 			direction= direction.Rotated(Vector3.Up,SpringArm.GlobalRotation.Y);
 			if (direction != Vector3.Zero)
 			{
-				UpdateViewMeshRot();
+				
 				velocity.X = direction.X * Speed;
 				velocity.Z = direction.Z * Speed;
 			}
@@ -119,7 +131,6 @@ public partial class Movement : CharacterBody3D
 		}else{
 			if (lastDirection != Vector3.Zero)
 			{
-				UpdateViewMeshRot();
 				velocity.X = lastDirection.X * Speed;
 				velocity.Z = lastDirection.Z * Speed;
 			}
